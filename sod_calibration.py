@@ -6,7 +6,7 @@ from icecream import ic
 
 if __name__ == '__main__':
   threshold = 200
-  img = np.array(Image.open('C:\\Users\\user\\Desktop\\LASERTEC3D\\20210817\\calibrationimg\\img_0030.bmp'))
+  img = np.array(Image.open('C:\\Users\\user\\Desktop\\LASERTEC3D\\20210823\\SOD_control\\calibrationimg\\img_0001.bmp'))
   h,w,l = img.shape
   img_red = img[:,:,0]
   ret, img_thresh = cv2.threshold(img_red, threshold, 255, cv2.THRESH_BINARY)
@@ -20,3 +20,5 @@ if __name__ == '__main__':
   plt.colorbar()
   plt.show()
   ic(gravitypoint_x, gravitypoint_y)
+  index = np.nonzero(img_thresh[:,gravitypoint_x])[0]
+  ic(np.max(index)-np.min(index))
