@@ -97,11 +97,11 @@ if __name__ == '__main__':
     height = 300
     width = 300
     threshold = 20
-    dpi = 0.01 # TODO: 解像度（mm/pixel）
+    resolution = 0.01 # TODO: 分解能（mm/pixel）
     frame_rate = 15 # TODO: フレームレート（fps）
     interval = 1/frame_rate # 撮影間隔（sec）
     feed_rate = 1000 # TODO: 走査速度（mm/min）
-    deviation_gravitypoint = int(feed_rate / 60 * interval / dpi)#TODO:  次のフレームの重心位置からのズレ（pixel）
+    deviation_gravitypoint = int(feed_rate / 60 * interval / resolution)#TODO:  次のフレームの重心位置からのズレ（pixel）
     if feed_rate / 60 * interval > 1.5:
         print('フレームレートが適切に設定されていません')
         sys.exit()
