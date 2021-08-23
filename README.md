@@ -2,8 +2,8 @@
 
 - THIN_WALL_SOD_CONTROL.MPF：NCプログラムのメインファイル
 - Inprocess_calcurate_sod_temperature.py：撮影・画像処理・SOD算出・溶融地温度算出を行うファイル
-- sod_calibration.py：キャリブレーション処理を行うpythonファイル（未実装）
-- auto_capture.py：ファイル保存のクリック位置を求めるpythonファイル（未実装）
+- sod_calibration.py：キャリブレーション処理を行うpythonファイル
+- auto_capture.py：ファイル保存のクリック位置を求めるpythonファイル
 
 ## ディレクトリ構造
 
