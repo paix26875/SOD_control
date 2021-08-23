@@ -98,8 +98,8 @@ if __name__ == '__main__':
     width = 300
     threshold = 20
     dpi = 0.01 # TODO: 解像度（mm/pixel）
-    frame_rate = 5 # TODO: フレームレート（fps）
-    interval = int(1/frame_rate) # 撮影間隔（sec）
+    frame_rate = 15 # TODO: フレームレート（fps）
+    interval = 1/frame_rate # 撮影間隔（sec）
     feed_rate = 1000 # TODO: 走査速度（mm/min）
     deviation_gravitypoint = int(feed_rate / 60 * interval / dpi)#TODO:  次のフレームの重心位置からのズレ（pixel）
     if feed_rate / 60 * interval > 1.5:
@@ -112,6 +112,7 @@ if __name__ == '__main__':
     z_pitch_history = np.array([])
     processing_time_history = np.array([])
     cooling_rate_history = np.array([])
+    cooling_rates = np.array([])
 
     client = Client('opc.tcp://169.254.1.15:4840/')
     try:
@@ -146,7 +147,7 @@ if __name__ == '__main__':
                 v0 = ua.Variant(2, ua.VariantType.Double)
                 R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
                 # pyautoguiによる溶融地撮影
-                time.sleep(0.2)
+                time.sleep(0.5)
                 for i in range(number_of_images):
                     time.sleep(interval)
                     pyautogui.click(925, 488)
