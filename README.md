@@ -11,6 +11,7 @@
 2. `mkdir /User/users/Desktop/LASERTEC3D/実験日/`
 3. `cd /User/users/Desktop/LASERTEC3D/実験日/`
 4. `git clone git@github.com:paix26875/SOD_control.git`
+5. パスフレーズを入力して`Enter`
 
 
 ## ディレクトリ構造
