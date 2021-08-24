@@ -3,10 +3,12 @@ import numpy as np
 from PIL import Image
 import cv2
 from icecream import ic
+import os
 
 if __name__ == '__main__':
   threshold = 222
-  img = np.array(Image.open('C:\\Users\\user\\Desktop\\LASERTEC3D\\20210823\\SOD_control\\calibrationimg\\img_0003.bmp'))
+  calibrationimg_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'calibrationimg' + os.sep
+  img = np.array(Image.open(calibrationimg_dir + 'img_0003.bmp'))
   h,w,l = img.shape
   img_red = img[:,:,0]
   ret, img_thresh = cv2.threshold(img_red, threshold, 255, cv2.THRESH_BINARY)
