@@ -12,11 +12,13 @@ Artviewerによる画像の保存先はpythonファイルと同じ階層のimage
 - Inprocess_calcurate_sod_temperature.py
 - sod_calibration.py
 - auto_capture.py
-- calibration_images
+- calibrationimg
+  - .gitkeep
   - img_0000
   - img_0001
   - ....
 - images
+  - .gitkeep
   - img_0000
   - img_0001
   - ....
