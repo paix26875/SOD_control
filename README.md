@@ -5,6 +5,14 @@
 - sod_calibration.py：キャリブレーション処理を行うpythonファイル
 - auto_capture.py：ファイル保存のクリック位置を求めるpythonファイル
 
+## セットアップ
+
+1. コマンドプロンプトを起動
+2. `mkdir /User/users/Desktop/LASERTEC3D/実験日/`
+3. `cd /User/users/Desktop/LASERTEC3D/実験日/`
+4. `git clone git@github.com:paix26875/SOD_control.git`
+
+
 ## ディレクトリ構造
 
 Artviewerによる画像の保存先はpythonファイルと同じ階層のimagesディレクトリに指定する
