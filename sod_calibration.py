@@ -6,9 +6,9 @@ from icecream import ic
 import os
 
 if __name__ == '__main__':
-  threshold = 223
-  img_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'calibrationimg' + os.sep
-  img = np.array(Image.open(img_dir + 'img_0011.bmp'))
+  threshold = 222
+  calibrationimg_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'calibrationimg' + os.sep
+  img = np.array(Image.open(calibrationimg_dir + 'img_0003.bmp'))
   h,w,l = img.shape
   img_red = img[:,:,0]
   ret, img_thresh = cv2.threshold(img_red, threshold, 255, cv2.THRESH_BINARY)
