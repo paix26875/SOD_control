@@ -93,18 +93,20 @@ def get_gravitypoint_CMOS(img_color, show_gp_img = True, threshold = 20, print_g
 
 if __name__ == '__main__':
     # 定数の設定
-    number_of_images = 4
+    number_of_images = 3
     height = 300
     width = 300
     threshold = 20
-    resolution = 0.01 # TODO: 分解能（mm/pixel）
-    frame_rate = 15 # TODO: フレームレート（fps）
+    resolution = 0.023 # TODO: 分解能（mm/pixel）
+    frame_rate = 5 # TODO: フレームレート（fps）
     interval = 1/frame_rate # 撮影間隔（sec）
     feed_rate = 1000 #  走査速度（mm/min）
     deviation_gravitypoint = int(feed_rate / 60 * interval / resolution)#  次のフレームの重心位置からのズレ（pixel）
-    if feed_rate / 60 * interval > 1.5:
-        print('フレームレートが適切に設定されていません')
-        sys.exit()
+    # if feed_rate / 60 * interval > 1.5:
+    #     ic(deviation_gravitypoint)
+    #     ic(feed_rate / 60 * interval)
+    #     print('フレームレートが適切に設定されていません')
+    #     sys.exit()
     coefs = np.array([ 2.15489147e+00, -1.50682127e+00,  6.00025683e+00,  1.77044939e+03])
 
     # 配列の初期化
@@ -147,10 +149,10 @@ if __name__ == '__main__':
                 v0 = ua.Variant(2, ua.VariantType.Double)
                 R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
                 # pyautoguiによる溶融地撮影
-                time.sleep(0.5)
+                # time.sleep(0.5)
                 for i in range(number_of_images):
-                    time.sleep(interval)
-                    pyautogui.click(925, 488)
+                    time.sleep(0.4)
+                    pyautogui.click(1001, 504)
 
                 # imagesディレクトリ内の最後に更新された画像を取得
                 images_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'images' + os.sep
@@ -166,11 +168,11 @@ if __name__ == '__main__':
                     sum_y += y
 
                     # 冷却速度算出用の温度を記録する
-                    cool_y = y - deviation_gravitypoint # 冷却速度測定用の座標
-                    lower_temperature = img[cool_y, x, 0]*coefs[0] + img[cool_y, x, 1]*coefs[1] + img[cool_y, x, 2]*coefs[2] + coefs[3]
-                    lower_temperatures = np.append(lower_temperatures, lower_temperature)
-                    gp_temperature = img[y, x, 0]*coefs[0] + img[y, x, 1]*coefs[1] + img[y, x, 2]*coefs[2] + coefs[3]
-                    gp_temperatures = np.append(gp_temperatures, gp_temperature)
+                    # cool_y = y - deviation_gravitypoint # 冷却速度測定用の座標
+                    # lower_temperature = img[cool_y, x, 0]*coefs[0] + img[cool_y, x, 1]*coefs[1] + img[cool_y, x, 2]*coefs[2] + coefs[3]
+                    # lower_temperatures = np.append(lower_temperatures, lower_temperature)
+                    # gp_temperature = img[y, x, 0]*coefs[0] + img[y, x, 1]*coefs[1] + img[y, x, 2]*coefs[2] + coefs[3]
+                    # gp_temperatures = np.append(gp_temperatures, gp_temperature)
 
                     # 平均温度の算出
                     trimmed_img_r = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 0]
@@ -188,12 +190,12 @@ if __name__ == '__main__':
                     temperature = np.sum(img_zero)/img_thresh.nonzero()[0].size
                     sum_temperature += temperature
                 # 1層あたりの平均SOD，平均温度、平均冷却速度を算出する
-                for i in range(gp_temperatures.size-1):
-                    cooling_rates = np.append(cooling_rates, (gp_temperatures[i] - lower_temperatures[i+1]) / interval)
-                average_coolingrate = np.sum(cooling_rates[1-number_of_images:]) / number_of_images-1
-                cooling_rates = np.append(cooling_rates, np.zeros(number_of_images))
-                ic(average_coolingrate)
-                cooling_rate_history = np.append(cooling_rate_history, average_coolingrate)
+                # for i in range(gp_temperatures.size-1):
+                #     cooling_rates = np.append(cooling_rates, (gp_temperatures[i] - lower_temperatures[i+1]) / interval)
+                # average_coolingrate = np.sum(cooling_rates[1-number_of_images:]) / number_of_images-1
+                # cooling_rates = np.append(cooling_rates, np.zeros(number_of_images))
+                # ic(average_coolingrate)
+                # cooling_rate_history = np.append(cooling_rate_history, average_coolingrate)
 
                 average_y = sum_y / number_of_images
                 ic(average_y)
@@ -203,7 +205,7 @@ if __name__ == '__main__':
                 z_pitch_history = np.append(z_pitch_history, z_pitch)
                 if z_pitch < -5 or z_pitch > 5:
                     R1 = client.get_node('ns=2;s=/Channel/Parameter/R[1]')
-                    v1 = ua.Variant(0.4, ua.VariantType.Double)
+                    v1 = ua.Variant(0.7, ua.VariantType.Double)
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
                 else:
                     # CELOSのR1に積層ピッチを書き込む
@@ -229,13 +231,15 @@ if __name__ == '__main__':
                 continue
             elif r0 == 3:
                 # csvデータとして保存
-                data = np.vstack([z_pitch_history, temperature_history, cooling_rate_history, processing_time_history]).T
+                # data = np.vstack([z_pitch_history, temperature_history, cooling_rate_history, processing_time_history]).T
+                data = np.vstack([z_pitch_history, temperature_history, processing_time_history]).T
                 dt_now = datetime.datetime.now()
                 nowstr = dt_now.strftime('%Y%m%d%H%M%S')
                 csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'csv' + os.sep
                 os.makedirs(csv_dir, exist_ok=True)
                 np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
-                header = ["z_pitch","temperature","cooling_rate_history","processing_time"]
+                # header = ["z_pitch","temperature","cooling_rate_history","processing_time"]
+                header = ["z_pitch","temperature","processing_time"]
                 with open(csv_dir + nowstr + '.csv', 'w', newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(header)
@@ -243,20 +247,20 @@ if __name__ == '__main__':
                         reader = csv.reader(fr)
                         writer.writerows(reader)
                 # csvデータとして保存
-                time = np.arange(cooling_rates.size)
-                data = np.vstack([time, cooling_rates]).T
-                dt_now = datetime.datetime.now()
-                nowstr = dt_now.strftime('%Y%m%d%H%M%S')
-                csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'csv' + os.sep
-                os.makedirs(csv_dir, exist_ok=True)
-                np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
-                header = ["time", "cooling_rate"]
-                with open(csv_dir + nowstr + 'cooling_rate_time.csv', 'w', newline="") as f:
-                    writer = csv.writer(f)
-                    writer.writerow(header)
-                    with open(csv_dir + 'temp.csv') as fr:
-                        reader = csv.reader(fr)
-                        writer.writerows(reader)
+                # time = np.arange(cooling_rates.size)
+                # data = np.vstack([time, cooling_rates]).T
+                # dt_now = datetime.datetime.now()
+                # nowstr = dt_now.strftime('%Y%m%d%H%M%S')
+                # csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'csv' + os.sep
+                # os.makedirs(csv_dir, exist_ok=True)
+                # np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
+                # header = ["time", "cooling_rate"]
+                # with open(csv_dir + nowstr + 'cooling_rate_time.csv', 'w', newline="") as f:
+                #     writer = csv.writer(f)
+                #     writer.writerow(header)
+                #     with open(csv_dir + 'temp.csv') as fr:
+                #         reader = csv.reader(fr)
+                #         writer.writerows(reader)
                 break
         print('処理を終了しました')
         
