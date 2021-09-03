@@ -125,7 +125,7 @@ if __name__ == '__main__':
             R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
             r0 = R0.get_value()
             if r0 == 0:# MPFによる指示待ち
-                time.sleep(0.5)# 0.5秒単位でループ
+                time.sleep(0.1)# 0.5秒単位でループ
                 print('処理してないよ')
 
                 # R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
@@ -142,8 +142,8 @@ if __name__ == '__main__':
                 # time.sleep(0.5)
                 for i in range(number_of_images):
                     time.sleep(0.4)
-                    pyautogui.click(1001, 504)
-
+                    pyautogui.click(1034, 489)
+                time.sleep(0.2)
                 # imagesディレクトリ内の最後に更新された画像を取得
                 images_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'images' + os.sep
                 file_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
@@ -155,9 +155,9 @@ if __name__ == '__main__':
 
                     # SODの算出
                     x,y = get_gravitypoint_CMOS(img, show_gp_img = False, print_gp = False)
-                    sod = (y - 59.372) / 42.117
+                    sod = (y + 15.572) / 46.283
                     z_pitch = 13 - sod
-                    z_pitch_time = np.append(z_pitch_time, y)
+                    z_pitch_time = np.append(z_pitch_time, z_pitch)
 
                     # 平均温度の算出
                     trimmed_img_r = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 0]
@@ -175,16 +175,15 @@ if __name__ == '__main__':
                     temperature = np.sum(img_zero)/img_thresh.nonzero()[0].size
                     temperature_time = np.append(temperature_time, temperature)
                 # 1トラックあたりの平均zpitchを算出
-                z_pitch_track = np.append(z_pitch_track, z_pitch_time[-1:-1*number_of_images] / number_of_images)
+                z_pitch_track = np.append(z_pitch_track, (np.sum(z_pitch_time[-1*number_of_images:-1])+z_pitch_time[-1]) / number_of_images)
                 # 1トラックあたりの平均温度算出
-                temperature_track = np.append(temperature_track, temperature_time[-1:-1*number_of_images] / number_of_images) 
-                # 処理終了
+                temperature_track = np.append(temperature_track, (np.sum(temperature_time[-1*number_of_images:-1])+temperature_time[-1]) / number_of_images)
                 R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
                 v0 = ua.Variant(0, ua.VariantType.Double)
                 R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
             elif r0 == 2:
                 # 1層あたりの平均SODを算出
-                z_pitch = z_pitch_track[-1:-1*number_of_tracks] / number_of_tracks
+                z_pitch = (np.sum(z_pitch_track[-1*number_of_tracks:-1])+z_pitch_track[-1]) / number_of_tracks
                 z_pitch_layer = np.append(z_pitch_layer, z_pitch)
                 ic(z_pitch)
                 if z_pitch < -5 or z_pitch > 5:
@@ -198,7 +197,7 @@ if __name__ == '__main__':
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
                 
                 # 1層あたりの平均温度算出
-                temperature = temperature_track[-1:-1*number_of_tracks] / number_of_tracks
+                temperature = (np.sum(temperature_track[-1*number_of_tracks:-1])+temperature_track[-1]) / number_of_tracks
                 temperature_layer = np.append(temperature_layer, temperature)
                 ic(temperature)
                 # TODO: 平均温度をcsvファイルとかに記録する（なんならリアルタイムで描画したい）
