@@ -92,6 +92,8 @@ def get_gravitypoint_CMOS(img_color, show_gp_img = True, threshold = 20, print_g
 
 
 if __name__ == '__main__':
+    print('Enter the reference temperature.')
+    ReferenceTemperature = int(input())
     # 定数の設定
     number_of_images = 3
     height = 300
@@ -115,6 +117,7 @@ if __name__ == '__main__':
     processing_time_history = np.array([])
     cooling_rate_history = np.array([])
     cooling_rates = np.array([])
+    laserPower_history = np.array([])
 
     client = Client('opc.tcp://169.254.1.15:4840/')
     try:
@@ -217,8 +220,25 @@ if __name__ == '__main__':
                 ic(average_temperature)
                 temperature_history = np.append(temperature_history, average_temperature)
                 # TODO: 平均温度をcsvファイルとかに記録する（なんならリアルタイムで描画したい）
-                # TODO: 平均温度を元に次の層のレーザ出力を算出
-                # TODO: 算出したレーザ出力をCELOSのR2に書き込む
+                
+                # 前回のレーザ出力を取得
+                R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
+                r2 = R2.get_value()
+                laserPower = r2
+                # 平均温度を元に次の層のレーザ出力を算出
+                if average_temperature >= ReferenceTemperature:
+                    laserPower -= 20
+                else:
+                    laserPower += 20
+                # 算出したレーザ出力をCELOSのR2に書き込む
+                if laserPower > 2000:
+                    laserPower_history = np.append(laserPower_history, r2)
+                    pass
+                else:
+                    R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
+                    v2 = ua.Variant(laserPower, ua.VariantType.Double)
+                    R2.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v2))
+                    laserPower_history = np.append(laserPower_history, laserPower)
 
                 R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
                 v0 = ua.Variant(0, ua.VariantType.Double)
@@ -232,14 +252,14 @@ if __name__ == '__main__':
             elif r0 == 3:
                 # csvデータとして保存
                 # data = np.vstack([z_pitch_history, temperature_history, cooling_rate_history, processing_time_history]).T
-                data = np.vstack([z_pitch_history, temperature_history, processing_time_history]).T
+                data = np.vstack([z_pitch_history, temperature_history, laserPower_history, processing_time_history]).T
                 dt_now = datetime.datetime.now()
                 nowstr = dt_now.strftime('%Y%m%d%H%M%S')
                 csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'csv' + os.sep
                 os.makedirs(csv_dir, exist_ok=True)
                 np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
                 # header = ["z_pitch","temperature","cooling_rate_history","processing_time"]
-                header = ["z_pitch","temperature","processing_time"]
+                header = ["z_pitch","temperature","laserPower_history","processing_time"]
                 with open(csv_dir + nowstr + '.csv', 'w', newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(header)
