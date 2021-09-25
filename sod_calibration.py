@@ -6,9 +6,11 @@ from icecream import ic
 import os
 
 if __name__ == '__main__':
-  threshold = 222
+  print('Enter the image number')
+  number = input()
+  threshold = 150
   calibrationimg_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'calibrationimg' + os.sep
-  img = np.array(Image.open(calibrationimg_dir + 'img_0003.bmp'))
+  img = np.array(Image.open(calibrationimg_dir + 'img_00'+number+'.bmp'))
   h,w,l = img.shape
   img_red = img[:,:,0]
   ret, img_thresh = cv2.threshold(img_red, threshold, 255, cv2.THRESH_BINARY)

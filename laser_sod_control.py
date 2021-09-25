@@ -154,8 +154,8 @@ if __name__ == '__main__':
                 # pyautoguiによる溶融地撮影
                 # time.sleep(0.5)
                 for i in range(number_of_images):
-                    time.sleep(0.4)
-                    pyautogui.click(1001, 504)
+                    time.sleep(0.5)
+                    pyautogui.click(1044, 491)
 
                 # imagesディレクトリ内の最後に更新された画像を取得
                 images_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'images' + os.sep
@@ -189,7 +189,11 @@ if __name__ == '__main__':
                     trimmed_img_g = trimmed_img_g.reshape(height*width)
                     trimmed_img_b = trimmed_img_b.reshape(height*width)
                     for i in img_thresh.nonzero()[0]:
-                        img_zero[i] = trimmed_img_r[i]*coefs[0] + trimmed_img_g[i]*coefs[1] + trimmed_img_b[i]*coefs[2] + coefs[3]
+                        temperature = trimmed_img_r[i]*coefs[0] + trimmed_img_g[i]*coefs[1] + trimmed_img_b[i]*coefs[2] + coefs[3]
+                        if temperature > 1900 and temperature < 2300:
+                            img_zero[i] = temperature
+                        else:
+                            continue
                     temperature = np.sum(img_zero)/img_thresh.nonzero()[0].size
                     sum_temperature += temperature
                 # 1層あたりの平均SOD，平均温度、平均冷却速度を算出する
@@ -208,7 +212,7 @@ if __name__ == '__main__':
                 z_pitch_history = np.append(z_pitch_history, z_pitch)
                 if z_pitch < -5 or z_pitch > 5:
                     R1 = client.get_node('ns=2;s=/Channel/Parameter/R[1]')
-                    v1 = ua.Variant(0.7, ua.VariantType.Double)
+                    v1 = ua.Variant(0.4, ua.VariantType.Double)
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
                 else:
                     # CELOSのR1に積層ピッチを書き込む
@@ -233,7 +237,6 @@ if __name__ == '__main__':
                 # 算出したレーザ出力をCELOSのR2に書き込む
                 if laserPower > 2000:
                     laserPower_history = np.append(laserPower_history, r2)
-                    pass
                 else:
                     R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
                     v2 = ua.Variant(laserPower, ua.VariantType.Double)
