@@ -109,7 +109,7 @@ if __name__ == '__main__':
     #     ic(feed_rate / 60 * interval)
     #     print('フレームレートが適切に設定されていません')
     #     sys.exit()
-    coefs = np.array([ 2.15489147e+00, -1.50682127e+00,  6.00025683e+00,  1.77044939e+03])
+    coefs = np.array([ 2.15489147e+00, -1.50682127e+00,  6.00025683e+00,  1.77044939e+03])#f4g16
 
     # 配列の初期化
     temperature_history = np.array([])
@@ -190,11 +190,11 @@ if __name__ == '__main__':
                     trimmed_img_b = trimmed_img_b.reshape(height*width)
                     for i in img_thresh.nonzero()[0]:
                         temperature = trimmed_img_r[i]*coefs[0] + trimmed_img_g[i]*coefs[1] + trimmed_img_b[i]*coefs[2] + coefs[3]
-                        if temperature > 1900 and temperature < 2300:
+                        if temperature > 1890 and temperature < 2310:
                             img_zero[i] = temperature
                         else:
                             continue
-                    temperature = np.sum(img_zero)/img_thresh.nonzero()[0].size
+                    temperature = np.sum(img_zero)/img_zero.nonzero()[0].size
                     sum_temperature += temperature
                 # 1層あたりの平均SOD，平均温度、平均冷却速度を算出する
                 # for i in range(gp_temperatures.size-1):
