@@ -158,7 +158,7 @@ if __name__ == '__main__':
                     pyautogui.click(1044, 491)
 
                 # imagesディレクトリ内の最後に更新された画像を取得
-                images_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'images' + os.sep
+                images_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep + 'images' + os.sep
                 file_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
                 analyze_file_list = [file_list[i] for i in range(number_of_images)]
                 
