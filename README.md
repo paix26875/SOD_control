@@ -8,10 +8,12 @@
 ## セットアップ
 
 1. コマンドプロンプトを起動
-2. `mkdir /User/users/Desktop/LASERTEC3D/実験日/`
-3. `cd /User/users/Desktop/LASERTEC3D/実験日/`
-4. `git clone git@github.com:paix26875/SOD_control.git`
-5. パスフレーズを入力して`Enter`
+2. `make setup`を実行
+   - 前回の実験結果をarchive
+   - 今回の実験に必要なディレクトリを作成する
+     - images
+     - calibrationimg
+     - setting.py
 
 
 ## ディレクトリ構造
@@ -21,16 +23,16 @@ Artviewerによる画像の保存先はpythonファイルと同じ階層のimage
 - Inprocess_calcurate_sod_temperature.py
 - sod_calibration.py
 - auto_capture.py
-- calibrationimg
-  - .gitkeep
-  - img_0000
-  - img_0001
-  - ....
-- images
-  - .gitkeep
-  - img_0000
-  - img_0001
-  - ....
+- archive
+- temp
+  - calibrationimg
+    - img_0000
+    - img_0001
+    - ....
+  - images
+    - img_0000
+    - img_0001
+    - ....
 
 
 ## R変数の設定
