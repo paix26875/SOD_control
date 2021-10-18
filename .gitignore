@@ -1,3 +1,6 @@
 *.bmp
 *.csv
 ThumbNail
+*.pyc
+temp/
+archive/
