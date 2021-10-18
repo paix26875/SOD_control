@@ -1,0 +1,8 @@
+# file: mydata.py
+# 以下ユーザー情報を記述
+user_info = {
+    "name": "kujira",
+    "password": "hoge",
+    "email": "web@kujirahand.com",
+    "url": "https://kujirahand.com"
+}
