@@ -9,7 +9,7 @@ fi
 # 前回の実験データが残っている場合、そのデータをアーカイブする
 if [ -d 'temp' ]; then
     echo 'Archiving the previous data .....'
-    # windowsだとsedコマンドがないかもしれない
+    # TODO: windowsだとsedコマンドがないかもしれない
     # 参考：https://qiita.com/hirohiro77/items/7fe2f68781c41777e507
     previous_experiment_date=`sed -n 1p temp/log.csv`
     archive_dir="archive/${previous_experiment_date}"
@@ -34,7 +34,7 @@ mkdir 'temp'
 cp 'setting.py.example' 'temp/setting.py'
 cd 'temp'
 touch 'log.txt'
-touch 'data.csv'
 echo ${today} > log.txt
 mkdir 'images'
 mkdir 'calibrationimg'
+mkdir 'csv'
