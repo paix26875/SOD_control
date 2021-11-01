@@ -90,10 +90,28 @@ def get_gravitypoint_CMOS(img_color, show_gp_img = True, threshold = 20, print_g
         return gravitypoint_x, gravitypoint_y
     return gravitypoint_x, gravitypoint_y
 
+def post_log(text):
+    '''
+    ログ出しする関数
+    yy/mm/dd hh:mm:ss ログの内容
+
+    Parameters
+    ----------
+    text : str
+        ログに出力したいテキスト
+    '''
+    now = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+    with open('temp' + os.sep + 'log.txt', 'a') as f:
+        print(now + ' ' + text, file=f)
+
 
 if __name__ == '__main__':
+    with open('temp/log.txt', 'a') as f:
+        print('', file=f)
+    post_log('Start!!!!!')
     print('Enter the reference temperature.')
     ReferenceTemperature = int(input())
+    post_log('Reference temperature : ' + str(ReferenceTemperature))
     # 定数の設定
     number_of_images = 3
     height = 300
@@ -119,8 +137,8 @@ if __name__ == '__main__':
     cooling_rates = np.array([])
     laserPower_history = np.array([])
 
-    client = Client('opc.tcp://169.254.1.15:4840/')
     try:
+        client = Client('opc.tcp://169.254.1.15:4840/')
         client.connect()
         R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
         v0 = ua.Variant(0, ua.VariantType.Double)
@@ -253,39 +271,49 @@ if __name__ == '__main__':
                 processing_time_history = np.append(processing_time_history, elapsed_time)
                 continue
             elif r0 == 3:
-                # csvデータとして保存
-                # data = np.vstack([z_pitch_history, temperature_history, cooling_rate_history, processing_time_history]).T
-                data = np.vstack([z_pitch_history, temperature_history, laserPower_history, processing_time_history]).T
-                dt_now = datetime.datetime.now()
-                nowstr = dt_now.strftime('%Y%m%d%H%M%S')
-                csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'csv' + os.sep
-                os.makedirs(csv_dir, exist_ok=True)
-                np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
-                # header = ["z_pitch","temperature","cooling_rate_history","processing_time"]
-                header = ["z_pitch","temperature","laserPower_history","processing_time"]
-                with open(csv_dir + nowstr + '.csv', 'w', newline="") as f:
-                    writer = csv.writer(f)
-                    writer.writerow(header)
-                    with open(csv_dir + 'temp.csv') as fr:
-                        reader = csv.reader(fr)
-                        writer.writerows(reader)
-                # csvデータとして保存
-                # time = np.arange(cooling_rates.size)
-                # data = np.vstack([time, cooling_rates]).T
-                # dt_now = datetime.datetime.now()
-                # nowstr = dt_now.strftime('%Y%m%d%H%M%S')
-                # csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'csv' + os.sep
-                # os.makedirs(csv_dir, exist_ok=True)
-                # np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
-                # header = ["time", "cooling_rate"]
-                # with open(csv_dir + nowstr + 'cooling_rate_time.csv', 'w', newline="") as f:
-                #     writer = csv.writer(f)
-                #     writer.writerow(header)
-                #     with open(csv_dir + 'temp.csv') as fr:
-                #         reader = csv.reader(fr)
-                #         writer.writerows(reader)
+                print('CELOSによるプログラム終了指示がありました。プログラムを終了しデータを保存します。')
                 break
-        print('処理を終了しました')
-        
+    except Exception as e:
+        print('エラーが発生しました。プログラムを中断します。')
+        print(e)
+        post_log('Error with : ' + str(e))
     finally:
-        client.disconnect()
+        # csvデータとして保存
+        # data = np.vstack([z_pitch_history, temperature_history, cooling_rate_history, processing_time_history]).T
+        data = np.vstack([z_pitch_history, temperature_history, laserPower_history, processing_time_history]).T
+        dt_now = datetime.datetime.now()
+        nowstr = dt_now.strftime('%Y%m%d%H%M%S')
+        csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep +'csv' + os.sep
+        os.makedirs(csv_dir, exist_ok=True)
+        np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
+        # header = ["z_pitch","temperature","cooling_rate_history","processing_time"]
+        header = ["z_pitch","temperature","laserPower_history","processing_time"]
+        with open(csv_dir + nowstr + '.csv', 'w', newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(header)
+            with open(csv_dir + 'temp.csv') as fr:
+                reader = csv.reader(fr)
+                writer.writerows(reader)
+        # csvデータとして保存
+        # time = np.arange(cooling_rates.size)
+        # data = np.vstack([time, cooling_rates]).T
+        # dt_now = datetime.datetime.now()
+        # nowstr = dt_now.strftime('%Y%m%d%H%M%S')
+        # csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep +'csv' + os.sep
+        # os.makedirs(csv_dir, exist_ok=True)
+        # np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
+        # header = ["time", "cooling_rate"]
+        # with open(csv_dir + nowstr + 'cooling_rate_time.csv', 'w', newline="") as f:
+        #     writer = csv.writer(f)
+        #     writer.writerow(header)
+        #     with open(csv_dir + 'temp.csv') as fr:
+        #         reader = csv.reader(fr)
+        #         writer.writerows(reader)
+        try:
+            client.disconnect()
+            print('接続を切断しました')
+        except Exception as e:
+            print(e)
+            post_log(str(e))
+        print('プログラムを終了しました')
+        post_log('Finish!!!')
