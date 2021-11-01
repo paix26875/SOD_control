@@ -1,8 +1,19 @@
 # file: mydata.py
 # 以下ユーザー情報を記述
+import numpy as np
 user_info = {
     "name": "kujira",
     "password": "hoge",
     "email": "web@kujirahand.com",
-    "url": "https://kujirahand.com"
+    "url": "https://kujirahand.com",
+}
+info = {
+    "number_of_images": 3,
+    "height": 300,
+    "width": 300,
+    "threshold": 20,
+    "resolution": 0.023, # TODO: 分解能（mm/pixel）
+    "frame_rate": 5, # TODO: フレームレート（fps）
+    "feed_rate": 1000, #  走査速度（mm/min）
+    "coefs": np.array([ 2.15489147e+00, -1.50682127e+00,  6.00025683e+00,  1.77044939e+03]),#f4g16
 }

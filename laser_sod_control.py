@@ -104,6 +104,22 @@ def post_log(text):
     with open('temp' + os.sep + 'log.txt', 'a') as f:
         print(now + ' ' + text, file=f)
 
+def import_setting_file():
+    '''
+    setting.pyから設定情報を取得する
+    取得した設定情報はログにも出力する
+    
+    Returns
+    ----------
+    info : dict
+        R変数にセットする値
+    '''
+    # TODO: マジックナンバーを全て設定ファイルに移行する（レーザ出力増減値など）
+    print('import setting file...')
+    from temp import setting
+    info = setting.info
+    post_log('setting info : ' + str(info))
+    return info
 
 if __name__ == '__main__':
     with open('temp/log.txt', 'a') as f:
@@ -113,21 +129,32 @@ if __name__ == '__main__':
     ReferenceTemperature = int(input())
     post_log('Reference temperature : ' + str(ReferenceTemperature))
     # 定数の設定
-    number_of_images = 3
-    height = 300
-    width = 300
-    threshold = 20
-    resolution = 0.023 # TODO: 分解能（mm/pixel）
-    frame_rate = 5 # TODO: フレームレート（fps）
+    info = import_setting_file()# 設定ファイルから定数を読み込む
+    number_of_images = info["number_of_images"]
+    height = info["height"]
+    width = info["width"]
+    threshold = info["threshold"]
+    resolution = info["resolution"]
+    frame_rate = info["frame_rate"]
+    feed_rate = info["feed_rate"]
     interval = 1/frame_rate # 撮影間隔（sec）
-    feed_rate = 1000 #  走査速度（mm/min）
     deviation_gravitypoint = int(feed_rate / 60 * interval / resolution)#  次のフレームの重心位置からのズレ（pixel）
     # if feed_rate / 60 * interval > 1.5:
     #     ic(deviation_gravitypoint)
     #     ic(feed_rate / 60 * interval)
     #     print('フレームレートが適切に設定されていません')
     #     sys.exit()
-    coefs = np.array([ 2.15489147e+00, -1.50682127e+00,  6.00025683e+00,  1.77044939e+03])#f4g16
+    coefs = info["coefs"]
+
+    ic(number_of_images)
+    ic(height)
+    ic(width)
+    ic(threshold)
+    ic(resolution)
+    ic(frame_rate)
+    ic(feed_rate)
+    ic(deviation_gravitypoint)
+    ic(coefs)
 
     # 配列の初期化
     temperature_history = np.array([])
@@ -151,11 +178,6 @@ if __name__ == '__main__':
             if r0 == 0:# MPFによる指示待ち
                 time.sleep(0.5)# 0.5秒単位でループ
                 print('処理してないよ')
-
-                # R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
-                # v0 = ua.Variant(1, ua.VariantType.Double)
-                # R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
-                        
                 continue
             elif r0 == 1:
                 # 定数の初期化
