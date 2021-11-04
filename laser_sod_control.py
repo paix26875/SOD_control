@@ -11,6 +11,7 @@ import glob
 from opcua import Client, ua
 import pyautogui
 import sys
+from natsort import natsorted
 
 # numpyの配列表示数の設定
 np.set_printoptions(threshold=np.inf)
@@ -159,6 +160,7 @@ def saveAllFrames(video_path, dir_path, basename, ext='bmp'):
             return
 
 if __name__ == '__main__':
+    start_ymdhms = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     with open('temp/log.txt', 'a') as f:
         print('', file=f)
     post_log('Start!!!!!')
@@ -264,11 +266,13 @@ if __name__ == '__main__':
                     while not os.access(video_path, os.R_OK):
                         time.sleep(0.01)
                         continue
-                    images_dir = "temp" + os.sep + str(layer) + 'layer_images'
+                    images_dir = "temp" + os.sep + 'images' + os.sep + start_ymdhms + os.sep + str(layer) + 'layer_images' + os.sep
                     saveAllFrames(video_path, images_dir, 'img')
+                    os.remove(video_path)
 
                     # 保存した画像の中から画像を抽出
-                    images_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
+                    # TODO:並び順をいい感じにする
+                    images_list = natsorted(glob.glob(images_dir + '*.bmp'))
                     middle_image_number = int(len(images_list) / 2)
                     analyze_file_list = [images_list[middle_image_number-1],images_list[middle_image_number],images_list[middle_image_number+1]]
 
@@ -377,6 +381,7 @@ if __name__ == '__main__':
                 continue
             elif r0 == 3:
                 print('CELOSによるプログラム終了指示がありました。プログラムを終了しデータを保存します。')
+                post_log('finish with r0=3')
                 break
     except Exception as e:
         print('エラーが発生しました。プログラムを中断します。')
