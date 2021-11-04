@@ -229,15 +229,31 @@ if __name__ == '__main__':
 
         layer = 0
                 
+        loading = 0
         while True:
             # R0の監視
             R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
             r0 = R0.get_value()
             if r0 == 0:# MPFによる指示待ち
+                if loading % 4 == 0:
+                    loading_string = '|||||||||||'
+                elif loading % 4 == 1:
+                    loading_string = '///////////'
+                elif loading % 4 == 2:
+                    loading_string = '-----------'
+                elif loading % 4 == 3:
+                    loading_string = '\\\\\\\\\\\\\\\\\\\\\\'
                 time.sleep(sleep_time)# 0.5秒単位でループ
-                print('処理してないよ')
+                print("\r" + 'CELOSからの指示待ち' + loading_string, end="")
+                loading += 1
+                if loading > 100:
+                    loading = 0
                 continue
             elif r0 == 1:
+                if layer == 0:
+                    R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
+                    r2 = R2.get_value()
+                    laser_power_history = np.append(laser_power_history, r2)
                 layer += 1
                 # 定数の初期化
                 sum_y = 0
