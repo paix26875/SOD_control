@@ -363,13 +363,13 @@ if __name__ == '__main__':
                     R1 = client.get_node('ns=2;s=/Channel/Parameter/R[1]')
                     v1 = ua.Variant(z_pitch_fix, ua.VariantType.Double)
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
-                    post_log('Entered Z pitch : ' + z_pitch_fix)
+                    post_log('Entered Z pitch : ' + str(z_pitch_fix))
                 else:
                     # CELOSのR1に積層ピッチを書き込む
                     R1 = client.get_node('ns=2;s=/Channel/Parameter/R[1]')
                     v1 = ua.Variant(z_pitch, ua.VariantType.Double)
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
-                    post_log('Entered Z pitch : ' + z_pitch)
+                    post_log('Entered Z pitch : ' + str(z_pitch))
                 
                 average_temperature = sum_temperature / number_of_images
                 ic(average_temperature)
