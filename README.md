@@ -1,7 +1,5 @@
 # SOD_control
 
-test
-
 - THIN_WALL_SOD_CONTROL.MPF：NCプログラムのメインファイル
 - Inprocess_calcurate_sod_temperature.py：撮影・画像処理・SOD算出・溶融地温度算出を行うファイル
 - sod_calibration.py：キャリブレーション処理を行うpythonファイル
@@ -10,7 +8,7 @@ test
 ## セットアップ
 
 1. コマンドプロンプトを起動
-2. `make setup`を実行
+2. `sh setup.sh`を実行
    - 前回の実験結果をarchive
    - 今回の実験に必要なディレクトリを作成する
      - images
