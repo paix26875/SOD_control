@@ -146,6 +146,22 @@ if __name__ == '__main__':
     #     sys.exit()
     coefs = info["coefs"]
 
+    
+    sleep_time = info["sleep_time"]
+    capture_button_x = info["capture_button_x"]
+    capture_button_y = info["capture_button_y"]
+    temperature_max = info["temperature_max"]
+    temperature_min = info["temperature_min"]
+    sod_ref = info["sod_ref"]
+    sod_coef = info["sod_coef"]
+    sod_intercept_px = info["sod_intercept_px"]
+    z_pitch_max = info["z_pitch_max"]
+    z_pitch_min = info["z_pitch_min"]
+    z_pitch_fix = info["z_pitch_fix"]
+    laser_power_change = info["laser_power_change"]
+    laser_power_max = info["laser_power_max"]
+
+
     ic(number_of_images)
     ic(height)
     ic(width)
@@ -162,7 +178,7 @@ if __name__ == '__main__':
     processing_time_history = np.array([])
     cooling_rate_history = np.array([])
     cooling_rates = np.array([])
-    laserPower_history = np.array([])
+    laser_power_history = np.array([])
 
     try:
         client = Client('opc.tcp://169.254.1.15:4840/')
@@ -176,7 +192,7 @@ if __name__ == '__main__':
             R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
             r0 = R0.get_value()
             if r0 == 0:# MPFによる指示待ち
-                time.sleep(0.5)# 0.5秒単位でループ
+                time.sleep(sleep_time)# 0.5秒単位でループ
                 print('処理してないよ')
                 continue
             elif r0 == 1:
@@ -194,16 +210,21 @@ if __name__ == '__main__':
                 # pyautoguiによる溶融地撮影
                 # time.sleep(0.5)
                 for i in range(number_of_images):
-                    time.sleep(0.5)
-                    pyautogui.click(1044, 491)
+                    time.sleep(sleep_time)
+                    pyautogui.click(capture_button_x, capture_button_y)
 
                 # imagesディレクトリ内の最後に更新された画像を取得
                 images_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep + 'images' + os.sep
                 file_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
                 analyze_file_list = [file_list[i] for i in range(number_of_images)]
-                
+                # TODO: 動画撮影と切り出し、読み込みを追加
                 for image_path in analyze_file_list:
                     ic(image_path)
+                    # ファイルが読み込み可能になるまで待機
+                    while not os.access(image_path, os.R_OK):
+                        time.sleep(0.01)
+                        continue
+                    post_log('read image : ' + image_path)
                     img = np.array(Image.open(image_path))
 
                     # SODの算出
@@ -230,7 +251,7 @@ if __name__ == '__main__':
                     trimmed_img_b = trimmed_img_b.reshape(height*width)
                     for i in img_thresh.nonzero()[0]:
                         temperature = trimmed_img_r[i]*coefs[0] + trimmed_img_g[i]*coefs[1] + trimmed_img_b[i]*coefs[2] + coefs[3]
-                        if temperature > 1890 and temperature < 2310:
+                        if temperature > temperature_min and temperature < temperature_max:
                             img_zero[i] = temperature
                         else:
                             continue
@@ -244,15 +265,15 @@ if __name__ == '__main__':
                 # ic(average_coolingrate)
                 # cooling_rate_history = np.append(cooling_rate_history, average_coolingrate)
 
-                average_y = sum_y / number_of_images
+                average_y = sum_y / number_of_images #重心位置[px]
                 ic(average_y)
-                sod = (average_y - 59.372) / 42.117
-                z_pitch = 13 - sod
+                sod = (average_y - sod_intercept_px) / sod_coef
+                z_pitch = sod_ref - sod
                 ic(z_pitch)
                 z_pitch_history = np.append(z_pitch_history, z_pitch)
-                if z_pitch < -5 or z_pitch > 5:
+                if z_pitch < z_pitch_min or z_pitch > z_pitch_max:
                     R1 = client.get_node('ns=2;s=/Channel/Parameter/R[1]')
-                    v1 = ua.Variant(0.4, ua.VariantType.Double)
+                    v1 = ua.Variant(z_pitch_fix, ua.VariantType.Double)
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
                 else:
                     # CELOSのR1に積層ピッチを書き込む
@@ -268,20 +289,20 @@ if __name__ == '__main__':
                 # 前回のレーザ出力を取得
                 R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
                 r2 = R2.get_value()
-                laserPower = r2
+                laser_power = r2
                 # 平均温度を元に次の層のレーザ出力を算出
                 if average_temperature >= ReferenceTemperature:
-                    laserPower -= 20
+                    laser_power -= laser_power_change
                 else:
-                    laserPower += 20
+                    laser_power += laser_power_change
                 # 算出したレーザ出力をCELOSのR2に書き込む
-                if laserPower > 2000:
-                    laserPower_history = np.append(laserPower_history, r2)
+                if laser_power > laser_power_max:
+                    laser_power_history = np.append(laser_power_history, r2)
                 else:
                     R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
-                    v2 = ua.Variant(laserPower, ua.VariantType.Double)
+                    v2 = ua.Variant(laser_power, ua.VariantType.Double)
                     R2.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v2))
-                    laserPower_history = np.append(laserPower_history, laserPower)
+                    laser_power_history = np.append(laser_power_history, laser_power)
 
                 R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
                 v0 = ua.Variant(0, ua.VariantType.Double)
@@ -299,17 +320,21 @@ if __name__ == '__main__':
         print('エラーが発生しました。プログラムを中断します。')
         print(e)
         post_log('Error with : ' + str(e))
+    except KeyboardInterrupt as e:
+        print('ユーザのキー入力によってプログラムが中断されました')
+        print(e)
+        post_log('User interrupt this program : ' + str(e))
     finally:
         # csvデータとして保存
         # data = np.vstack([z_pitch_history, temperature_history, cooling_rate_history, processing_time_history]).T
-        data = np.vstack([z_pitch_history, temperature_history, laserPower_history, processing_time_history]).T
+        data = np.vstack([z_pitch_history, temperature_history, laser_power_history, processing_time_history]).T
         dt_now = datetime.datetime.now()
         nowstr = dt_now.strftime('%Y%m%d%H%M%S')
         csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep +'csv' + os.sep
         os.makedirs(csv_dir, exist_ok=True)
         np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
         # header = ["z_pitch","temperature","cooling_rate_history","processing_time"]
-        header = ["z_pitch","temperature","laserPower_history","processing_time"]
+        header = ["z_pitch","temperature","laser_power_history","processing_time"]
         with open(csv_dir + nowstr + '.csv', 'w', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(header)
