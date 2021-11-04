@@ -120,6 +120,43 @@ def import_setting_file():
     info = setting.info
     post_log('setting info : ' + str(info))
     return info
+def saveAllFrames(video_path, dir_path, basename, ext='bmp'):
+    """
+    動画をフレームに切り出して指定ディレクトリに保存
+
+    Parameters
+    -----------
+    video_path:str
+        切り出したい動画の相対パスを指定
+    dir_path:str
+        切り出したフレームを保存するディレクトリ名
+    basename:str
+        切り出したフレームの連番の前につく名前を指定
+    ext:str
+        切り出したフレームの拡張子を指定。デフォルト値はbmp
+    """
+    cap = cv2.VideoCapture(video_path)
+    # reader = skvideo.io.FFmpegReader(video_path) #追加
+
+    if not cap.isOpened():
+        return
+    
+    # dir_pathという名前のディレクトリ作成（すでに存在している場合はスルーされる）
+    os.makedirs(dir_path, exist_ok=True)
+    base_path = os.path.join(dir_path, basename)
+
+    # digit = len(str(int(cap.get(cv2.CAP_PROP_FRAME_COUNT))))
+
+    n = 0
+
+    while True:
+        ret, frame = cap.read()
+    # for frame in reader.nextFrame(): #追加
+        if ret:
+            cv2.imwrite('{}_{}.{}'.format(base_path, str(n), ext), frame)
+            n += 1
+        else:
+            return
 
 if __name__ == '__main__':
     with open('temp/log.txt', 'a') as f:
@@ -160,6 +197,7 @@ if __name__ == '__main__':
     z_pitch_fix = info["z_pitch_fix"]
     laser_power_change = info["laser_power_change"]
     laser_power_max = info["laser_power_max"]
+    video_capture = info["video_capture"]
 
 
     ic(number_of_images)
@@ -186,6 +224,8 @@ if __name__ == '__main__':
         R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
         v0 = ua.Variant(0, ua.VariantType.Double)
         R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
+
+        layer = 0
                 
         while True:
             # R0の監視
@@ -196,34 +236,56 @@ if __name__ == '__main__':
                 print('処理してないよ')
                 continue
             elif r0 == 1:
+                layer += 1
                 # 定数の初期化
                 sum_y = 0
                 sum_temperature = 0
                 lower_temperatures = np.array([])
                 gp_temperatures = np.array([])
-
+                
                 start = time.time()
 
-                R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
-                v0 = ua.Variant(2, ua.VariantType.Double)
-                R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
                 # pyautoguiによる溶融地撮影
-                # time.sleep(0.5)
-                for i in range(number_of_images):
-                    time.sleep(sleep_time)
-                    pyautogui.click(capture_button_x, capture_button_y)
+                if video_capture:
+                    pyautogui.click(capture_button_x, capture_button_y)# 撮影開始
+                    while True:
+                        R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
+                        r0 = R0.get_value()
+                        if r0 == 1:# MPFによる指示待ち
+                            time.sleep(0.01)# 0.01秒単位でループ
+                            continue
+                        elif r0 == 2:
+                            pyautogui.click(capture_button_x, capture_button_y)# 撮影終了
+                            break
 
-                # imagesディレクトリ内の最後に更新された画像を取得
-                images_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep + 'images' + os.sep
-                file_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
-                analyze_file_list = [file_list[i] for i in range(number_of_images)]
-                # TODO: 動画撮影と切り出し、読み込みを追加
+                    # videosディレクトリ内の最後に更新された動画を取得
+                    videos_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep + 'videos' + os.sep
+                    video_path = sorted(glob.glob(videos_dir + '*.avi'), key=os.path.getmtime, reverse=True)[0]
+                    while not os.access(video_path, os.R_OK):
+                        time.sleep(0.01)
+                        continue
+                    images_dir = "temp" + os.sep + str(layer) + 'layer_images'
+                    saveAllFrames(video_path, images_dir, 'img')
+
+                    # 保存した画像の中から画像を抽出
+                    images_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
+                    middle_image_number = int(len(images_list) / 2)
+                    analyze_file_list = [images_list[middle_image_number-1],images_list[middle_image_number],images_list[middle_image_number+1]]
+
+                else:
+                    for i in range(number_of_images):
+                        time.sleep(sleep_time)
+                        pyautogui.click(capture_button_x, capture_button_y)
+                    file_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
+                    analyze_file_list = [file_list[i] for i in range(number_of_images)]
+
                 for image_path in analyze_file_list:
                     ic(image_path)
                     # ファイルが読み込み可能になるまで待機
-                    while not os.access(image_path, os.R_OK):
-                        time.sleep(0.01)
-                        continue
+                    if not video_capture:
+                        while not os.access(image_path, os.R_OK):
+                            time.sleep(0.01)
+                            continue
                     post_log('read image : ' + image_path)
                     img = np.array(Image.open(image_path))
 

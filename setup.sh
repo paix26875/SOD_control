@@ -38,3 +38,4 @@ echo ${today} > log.txt
 mkdir 'images'
 mkdir 'calibrationimg'
 mkdir 'csv'
+mkdir 'videos'
