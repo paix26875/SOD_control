@@ -266,6 +266,7 @@ if __name__ == '__main__':
                 # pyautoguiによる溶融地撮影
                 if video_capture:
                     pyautogui.click(capture_button_x, capture_button_y)# 撮影開始
+                    post_log('start capturing')
                     while True:
                         R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
                         r0 = R0.get_value()
@@ -274,6 +275,7 @@ if __name__ == '__main__':
                             continue
                         elif r0 == 2:
                             pyautogui.click(capture_button_x, capture_button_y)# 撮影終了
+                            post_log('finish capturing')
                             break
 
                     # videosディレクトリ内の最後に更新された動画を取得
@@ -284,10 +286,11 @@ if __name__ == '__main__':
                         continue
                     images_dir = "temp" + os.sep + 'images' + os.sep + start_ymdhms + os.sep + str(layer) + 'layer_images' + os.sep
                     saveAllFrames(video_path, images_dir, 'img')
+                    post_log('save all frames success')
                     os.remove(video_path)
+                    post_log('remove the video')
 
                     # 保存した画像の中から画像を抽出
-                    # TODO:並び順をいい感じにする
                     images_list = natsorted(glob.glob(images_dir + '*.bmp'))
                     middle_image_number = int(len(images_list) / 2)
                     analyze_file_list = [images_list[middle_image_number-1],images_list[middle_image_number],images_list[middle_image_number+1]]
@@ -311,6 +314,7 @@ if __name__ == '__main__':
 
                     # SODの算出
                     x,y = get_gravitypoint_CMOS(img, show_gp_img = False, print_gp = False)
+                    post_log('Gravity Center Coordinates : ' + str(y))
                     sum_y += y
 
                     # 冷却速度算出用の温度を記録する
@@ -338,6 +342,7 @@ if __name__ == '__main__':
                         else:
                             continue
                     temperature = np.sum(img_zero)/img_zero.nonzero()[0].size
+                    post_log('Melt Pool Temperature : ' + str(temperature))
                     sum_temperature += temperature
                 # 1層あたりの平均SOD，平均温度、平均冷却速度を算出する
                 # for i in range(gp_temperatures.size-1):
@@ -351,20 +356,24 @@ if __name__ == '__main__':
                 ic(average_y)
                 sod = (average_y - sod_intercept_px) / sod_coef
                 z_pitch = sod_ref - sod
+                post_log('Computed Z Pitch : ' + str(z_pitch))
                 ic(z_pitch)
                 z_pitch_history = np.append(z_pitch_history, z_pitch)
                 if z_pitch < z_pitch_min or z_pitch > z_pitch_max:
                     R1 = client.get_node('ns=2;s=/Channel/Parameter/R[1]')
                     v1 = ua.Variant(z_pitch_fix, ua.VariantType.Double)
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
+                    post_log('Entered Z pitch : ' + z_pitch_fix)
                 else:
                     # CELOSのR1に積層ピッチを書き込む
                     R1 = client.get_node('ns=2;s=/Channel/Parameter/R[1]')
                     v1 = ua.Variant(z_pitch, ua.VariantType.Double)
                     R1.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v1))
+                    post_log('Entered Z pitch : ' + z_pitch)
                 
                 average_temperature = sum_temperature / number_of_images
                 ic(average_temperature)
+                post_log('Average Temperature : ' + str(average_temperature))
                 temperature_history = np.append(temperature_history, average_temperature)
                 # TODO: 平均温度をcsvファイルとかに記録する（なんならリアルタイムで描画したい）
                 
@@ -377,13 +386,16 @@ if __name__ == '__main__':
                     laser_power -= laser_power_change
                 else:
                     laser_power += laser_power_change
+                post_log('Computed Laser Power : ' + str(laser_power))
                 # 算出したレーザ出力をCELOSのR2に書き込む
                 if laser_power > laser_power_max:
                     laser_power_history = np.append(laser_power_history, r2)
+                    post_log('Entered Laser Power : ' + str(r2))
                 else:
                     R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
                     v2 = ua.Variant(laser_power, ua.VariantType.Double)
                     R2.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v2))
+                    post_log('Entered Laser Power : ' + str(laser_power))
                     laser_power_history = np.append(laser_power_history, laser_power)
 
                 R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
