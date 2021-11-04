@@ -299,6 +299,7 @@ if __name__ == '__main__':
                     for i in range(number_of_images):
                         time.sleep(sleep_time)
                         pyautogui.click(capture_button_x, capture_button_y)
+                    post_log('finish capturing')
                     file_list = sorted(glob.glob(images_dir + '*.bmp'), key=os.path.getmtime, reverse=True)
                     analyze_file_list = [file_list[i] for i in range(number_of_images)]
 
