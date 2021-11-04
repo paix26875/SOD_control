@@ -159,6 +159,27 @@ def saveAllFrames(video_path, dir_path, basename, ext='bmp'):
         else:
             return
 
+def print_loading(loading, message='CELOSからの指示待ち'):
+    '''
+    ロード画面を標準出力する
+
+    Parameters
+    -----------
+    loading : int
+        この値を4で割った時の余りによって表示が変化する
+    message : str
+        ロード画面に出力するメッセージ
+    '''
+    if loading % 4 == 0:
+        loading_string = '|||||||||||'
+    elif loading % 4 == 1:
+        loading_string = '///////////'
+    elif loading % 4 == 2:
+        loading_string = '-----------'
+    elif loading % 4 == 3:
+        loading_string = '\\\\\\\\\\\\\\\\\\\\\\'
+    print("\r" + message + loading_string, end="")
+    
 if __name__ == '__main__':
     start_ymdhms = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     with open('temp/log.txt', 'a') as f:
@@ -235,16 +256,8 @@ if __name__ == '__main__':
             R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
             r0 = R0.get_value()
             if r0 == 0:# MPFによる指示待ち
-                if loading % 4 == 0:
-                    loading_string = '|||||||||||'
-                elif loading % 4 == 1:
-                    loading_string = '///////////'
-                elif loading % 4 == 2:
-                    loading_string = '-----------'
-                elif loading % 4 == 3:
-                    loading_string = '\\\\\\\\\\\\\\\\\\\\\\'
+                print_loading(loading)# ロード画面の出力
                 time.sleep(sleep_time)# 0.5秒単位でループ
-                print("\r" + 'CELOSからの指示待ち' + loading_string, end="")
                 loading += 1
                 if loading > 100:
                     loading = 0
