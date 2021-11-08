@@ -180,6 +180,46 @@ def print_loading(loading, message='CELOSからの指示待ち'):
         loading_string = '\\\\\\\\\\\\\\\\\\\\\\'
     print("\r" + message + loading_string, end="")
     
+def img_to_temperature(img, coefs, temperature_min, temperature_max, threshold):
+    '''
+    RGB画像を温度に変換
+
+    Parameters
+    -----------
+    img : np.array
+        溶融池のRGB画像
+    coefs : np.array
+        キャリブレーション式の係数
+    temperature_min : int
+        キャリブレーション式の適用範囲の下限
+    temperature_max : int
+        キャリブレーション式の適用範囲の上限
+    threshold : int
+        温度変換するピクセルを絞り込む閾値
+    
+    Returns
+    -----------
+    temperature_array : np.array
+        溶融池の温度
+    '''
+    height, width, _ = img.shape
+    
+    temperature_array = np.zeros(height*width)
+    img_r = img[:,:,0].reshape(height*width)
+    img_g = img[:,:,1].reshape(height*width)
+    img_b = img[:,:,2].reshape(height*width)
+
+    ret, img_thresh = cv2.threshold(img_r, threshold, 255, cv2.THRESH_BINARY)
+
+    for i in img_thresh.nonzero()[0]:
+        temperature = img_r[i]*coefs[0] + img_g[i]*coefs[1] + img_b[i]*coefs[2] + coefs[3]
+        if temperature > temperature_min and temperature < temperature_max:
+            temperature_array[i] = temperature
+        else:
+            continue
+    temperature_array = np.reshape(temperature_array, [height, width])
+    return temperature_array
+
 if __name__ == '__main__':
     start_ymdhms = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     with open('temp/log.txt', 'a') as f:
@@ -339,23 +379,25 @@ if __name__ == '__main__':
                     # gp_temperatures = np.append(gp_temperatures, gp_temperature)
 
                     # 平均温度の算出
-                    trimmed_img_r = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 0]
-                    trimmed_img_g = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 1]
-                    trimmed_img_b = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 2]
-                    img_zero = np.zeros(height*width)
-
-                    img_red = trimmed_img_r[:,:].reshape(height*width)
-                    ret, img_thresh = cv2.threshold(img_red, threshold, 255, cv2.THRESH_BINARY)
-                    trimmed_img_r = trimmed_img_r.reshape(height*width)
-                    trimmed_img_g = trimmed_img_g.reshape(height*width)
-                    trimmed_img_b = trimmed_img_b.reshape(height*width)
-                    for i in img_thresh.nonzero()[0]:
-                        temperature = trimmed_img_r[i]*coefs[0] + trimmed_img_g[i]*coefs[1] + trimmed_img_b[i]*coefs[2] + coefs[3]
-                        if temperature > temperature_min and temperature < temperature_max:
-                            img_zero[i] = temperature
-                        else:
-                            continue
-                    temperature = np.sum(img_zero)/img_zero.nonzero()[0].size
+                    # TODO: エラーになった時用にとっておいてある．エラーが出なければ削除する
+                    # trimmed_img_r = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 0]
+                    # trimmed_img_g = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 1]
+                    # trimmed_img_b = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), 2]
+                    # img_zero = np.zeros(height*width)
+                    # img_red = trimmed_img_r[:,:].reshape(height*width)
+                    # ret, img_thresh = cv2.threshold(img_red, threshold, 255, cv2.THRESH_BINARY)
+                    # trimmed_img_r = trimmed_img_r.reshape(height*width)
+                    # trimmed_img_g = trimmed_img_g.reshape(height*width)
+                    # trimmed_img_b = trimmed_img_b.reshape(height*width)
+                    # for i in img_thresh.nonzero()[0]:
+                    #     temperature = trimmed_img_r[i]*coefs[0] + trimmed_img_g[i]*coefs[1] + trimmed_img_b[i]*coefs[2] + coefs[3]
+                    #     if temperature > temperature_min and temperature < temperature_max:
+                    #         img_zero[i] = temperature
+                    #     else:
+                    #         continue
+                    trimmed_img = img[ y - int(height/2) : y + int(height/2) , x - int(width/2) : x + int(width/2), :]
+                    temperature_array = img_to_temperature(trimmed_img, coefs, temperature_min, temperature_max, threshold)
+                    temperature = np.sum(temperature_array)/temperature_array.nonzero()[0].size
                     post_log('Melt Pool Temperature : ' + str(temperature))
                     sum_temperature += temperature
                 # 1層あたりの平均SOD，平均温度、平均冷却速度を算出する
