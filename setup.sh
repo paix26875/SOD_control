@@ -33,8 +33,8 @@ today=`date '+%Y%m%d'`
 mkdir 'temp'
 cp 'setting.py.example' 'temp/setting.py'
 cd 'temp'
-touch 'log.txt'
-echo ${today} > log.txt
+touch 'log.log'
+echo ${today} > log.log
 mkdir 'images'
 mkdir 'calibrationimg'
 mkdir 'csv'

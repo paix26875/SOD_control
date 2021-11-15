@@ -102,7 +102,7 @@ def post_log(text):
         ログに出力したいテキスト
     '''
     now = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
-    with open('temp' + os.sep + 'log.txt', 'a') as f:
+    with open('temp' + os.sep + 'log.log', 'a') as f:
         print(now + ' ' + text, file=f)
 
 def import_setting_file():
