@@ -12,6 +12,7 @@ from opcua import Client, ua
 import pyautogui
 import sys
 from natsort import natsorted
+import traceback
 
 # numpyの配列表示数の設定
 np.set_printoptions(threshold=np.inf)
@@ -289,7 +290,6 @@ if __name__ == '__main__':
         R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
 
         layer = 0
-                
         loading = 0
         while True:
             # R0の監視
@@ -303,10 +303,12 @@ if __name__ == '__main__':
                     loading = 0
                 continue
             elif r0 == 1:
-                if layer == 0:
-                    R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
-                    r2 = R2.get_value()
-                    laser_power_history = np.append(laser_power_history, r2)
+                print('')
+                # TODO:初期レーザ出力の記録をしたい。csv保存するときにレコード数が合わずバグるので一旦放置
+                # if layer == 0:
+                #     R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
+                #     r2 = R2.get_value()
+                #     laser_power_history = np.append(laser_power_history, r2)
                 layer += 1
                 # 定数の初期化
                 sum_y = 0
@@ -470,7 +472,8 @@ if __name__ == '__main__':
     except Exception as e:
         print('エラーが発生しました。プログラムを中断します。')
         print(e)
-        post_log('Error with : ' + str(e))
+        post_log('Error : ' + str(e))
+        post_log('Traceback' + str(traceback.format_exc()))
     except KeyboardInterrupt as e:
         print('ユーザのキー入力によってプログラムが中断されました')
         print(e)
