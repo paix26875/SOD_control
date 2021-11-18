@@ -285,9 +285,9 @@ if __name__ == '__main__':
     try:
         client = Client('opc.tcp://169.254.1.15:4840/')
         client.connect()
-        R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
-        v0 = ua.Variant(0, ua.VariantType.Double)
-        R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
+        # R0 = client.get_node('ns=2;s=/Channel/Parameter/R[0]')
+        # v0 = ua.Variant(0, ua.VariantType.Double)
+        # R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
 
         layer = 0
         loading = 0
@@ -305,10 +305,10 @@ if __name__ == '__main__':
             elif r0 == 1:
                 print('')
                 # TODO:初期レーザ出力の記録をしたい。csv保存するときにレコード数が合わずバグるので一旦放置
-                # if layer == 0:
-                #     R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
-                #     r2 = R2.get_value()
-                #     laser_power_history = np.append(laser_power_history, r2)
+                if layer == 0:
+                    R2 = client.get_node('ns=2;s=/Channel/Parameter/R[2]')
+                    r2 = R2.get_value()
+                    # laser_power_history = np.append(laser_power_history, r2)
                 layer += 1
                 # 定数の初期化
                 sum_y = 0
@@ -470,11 +470,13 @@ if __name__ == '__main__':
                 post_log('finish with r0=3')
                 break
     except Exception as e:
+        print('')
         print('エラーが発生しました。プログラムを中断します。')
         print(e)
         post_log('Error : ' + str(e))
         post_log('Traceback' + str(traceback.format_exc()))
     except KeyboardInterrupt as e:
+        print('')
         print('ユーザのキー入力によってプログラムが中断されました')
         print(e)
         post_log('User interrupt this program : ' + str(e))

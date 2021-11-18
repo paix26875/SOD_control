@@ -27,7 +27,7 @@ info = {
     "z_pitch_max": 5,# celosに入力できるzピッチの上限値[mm]
     "z_pitch_min": -5,# celosに入力できるzピッチの下限値[mm]
     "z_pitch_fix": 0.4,# 上限値、下限値を超えた場合にcelosに入力する固定値[mm]（推奨値→薄壁：0.4、ブロック：0.7）
-    "laser_power_change": 20,# レーザ出力の増減値[W]
+    "laser_power_change": 100,# レーザ出力の増減値[W]
     "laser_power_max": 2000,# レーザ出力の上限値[W]
     "video_capture": True,# 動画撮影による測定
 }
