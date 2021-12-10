@@ -1,3 +1,14 @@
+# 引継ぎ用メモ
+
+- 池下のpythonの理解度
+- 何を勉強すれば良いか
+  - python
+  - opencv
+  - PIL
+  - numpy
+  - shellscript
+  - git/github
+
 # SOD_control
 
 - THIN_WALL_SOD_CONTROL.MPF：NCプログラムのメインファイル
