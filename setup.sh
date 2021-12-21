@@ -11,7 +11,7 @@ if [ -d 'temp' ]; then
     echo 'Archiving the previous data .....'
     # TODO: windowsだとsedコマンドがないかもしれない
     # 参考：https://qiita.com/hirohiro77/items/7fe2f68781c41777e507
-    previous_experiment_date=`sed -n 1p temp/log.csv`
+    previous_experiment_date=`sed -n 1p temp/log.log`
     archive_dir="archive/${previous_experiment_date}"
     if [ -d $archive_dir ]; then
         echo 'Do you want to remove a directory that already exists? [yes/no(recommend)]'
