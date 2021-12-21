@@ -278,6 +278,7 @@ if __name__ == '__main__':
     temperature_history = np.array([])
     z_pitch_history = np.array([])
     processing_time_history = np.array([])
+    calculated_fps_history = np.array([])
     cooling_rate_history = np.array([])
     cooling_rates = np.array([])
     laser_power_history = np.array([])
@@ -316,10 +317,10 @@ if __name__ == '__main__':
                 lower_temperatures = np.array([])
                 gp_temperatures = np.array([])
                 
-                start = time.time()
 
                 # pyautoguiによる溶融地撮影
                 if video_capture:
+                    start = time.time()
                     pyautogui.click(capture_button_x, capture_button_y)# 撮影開始
                     post_log('start capturing')
                     while True:
@@ -329,7 +330,11 @@ if __name__ == '__main__':
                             time.sleep(0.01)# 0.01秒単位でループ
                             continue
                         elif r0 == 2:
+                            end = time.time()
                             pyautogui.click(capture_button_x, capture_button_y)# 撮影終了
+                            elapsed_time = end - start
+                            ic(elapsed_time)
+                            processing_time_history = np.append(processing_time_history, elapsed_time)
                             post_log('finish capturing')
                             break
 
@@ -347,6 +352,8 @@ if __name__ == '__main__':
 
                     # 保存した画像の中から画像を抽出
                     images_list = natsorted(glob.glob(images_dir + '*.bmp'))
+                    calculated_fps = len(images_list) / elapsed_time
+                    calculated_fps_history = np.append(calculated_fps_history, calculated_fps)
                     middle_image_number = int(len(images_list) / 2)
                     analyze_file_list = [images_list[middle_image_number-1],images_list[middle_image_number],images_list[middle_image_number+1]]
 
@@ -460,10 +467,7 @@ if __name__ == '__main__':
                 v0 = ua.Variant(0, ua.VariantType.Double)
                 R0.set_attribute(ua.AttributeIds.ArrayDimensions, ua.DataValue(v0))
 
-                end = time.time()
-                elapsed_time = end - start
-                ic(elapsed_time)
-                processing_time_history = np.append(processing_time_history, elapsed_time)
+                
                 continue
             elif r0 == 3:
                 print('CELOSによるプログラム終了指示がありました。プログラムを終了しデータを保存します。')
@@ -483,14 +487,14 @@ if __name__ == '__main__':
     finally:
         # csvデータとして保存
         # data = np.vstack([z_pitch_history, temperature_history, cooling_rate_history, processing_time_history]).T
-        data = np.vstack([z_pitch_history, temperature_history, laser_power_history, processing_time_history]).T
+        data = np.vstack([z_pitch_history, temperature_history, laser_power_history, processing_time_history, calculated_fps_history]).T
         dt_now = datetime.datetime.now()
         nowstr = dt_now.strftime('%Y%m%d%H%M%S')
         csv_dir = os.path.dirname(os.getcwd() + os.sep + __file__) + os.sep + 'temp' + os.sep +'csv' + os.sep
         os.makedirs(csv_dir, exist_ok=True)
         np.savetxt(csv_dir + 'temp.csv', data, delimiter=',', fmt='%.6e')
         # header = ["z_pitch","temperature","cooling_rate_history","processing_time"]
-        header = ["z_pitch","temperature","laser_power_history","processing_time"]
+        header = ["z_pitch","temperature","laser_power_history","processing_time","calculated_fps"]
         with open(csv_dir + nowstr + '.csv', 'w', newline="") as f:
             writer = csv.writer(f)
             writer.writerow(header)
