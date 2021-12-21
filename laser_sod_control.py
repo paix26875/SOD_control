@@ -376,7 +376,7 @@ if __name__ == '__main__':
                     img = np.array(Image.open(image_path))
 
                     # SODの算出
-                    x,y = get_gravitypoint_CMOS(img, show_gp_img = False, print_gp = False)
+                    x,y = get_gravitypoint_CMOS(img,threshold=threshold, show_gp_img = False, print_gp = False)
                     post_log('Gravity Center Coordinates : ' + str(y))
                     sum_y += y
 
