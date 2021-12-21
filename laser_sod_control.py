@@ -223,7 +223,7 @@ def img_to_temperature(img, coefs, temperature_min, temperature_max, threshold):
 
 if __name__ == '__main__':
     start_ymdhms = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    with open('temp/log.txt', 'a') as f:
+    with open('temp/log.log', 'a') as f:
         print('', file=f)
     post_log('Start!!!!!')
     print('Enter the reference temperature.')
