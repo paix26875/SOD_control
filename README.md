@@ -1,6 +1,13 @@
 # 引継ぎ用メモ
 
 - 池下のpythonの理解度
+  - progateとか？
+  - 基本的な文法の学習
+    - for,while
+    - if,elif,else
+    - try,except,finally
+    - class,method
+    - 配列
 - 何を勉強すれば良いか
   - python
   - opencv
