@@ -1,5 +1,15 @@
 # 引継ぎ用メモ
-
+- このシステムの運用
+  - git,github
+  - python系
+  - OPC UA
+- 環境構築
+  - python系
+  - CMOSカメラ
+  - 二色温度計
+- DEDの使い方
+  - 基本
+  - キャリブレーション
 - 池下のpythonの理解度
   - progateとか？
   - 基本的な文法の学習
