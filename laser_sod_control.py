@@ -221,6 +221,23 @@ def img_to_temperature(img, coefs, temperature_min, temperature_max, threshold):
     temperature_array = np.reshape(temperature_array, [height, width])
     return temperature_array
 
+def compute_laser_power(laser_power, average_temperature, temperature_history, ReferenceTemperature, laser_power_change):
+    if ReferenceTemperature - 5 <= average_temperature < ReferenceTemperature:
+        laser_power += laser_power_change / 2
+    elif ReferenceTemperature <= average_temperature <= ReferenceTemperature + 5:
+        laser_power -= laser_power_change / 2
+    elif average_temperature > ReferenceTemperature + 5:
+        if temperature_history[-1] < ReferenceTemperature and temperature_history[-2] >= ReferenceTemperature:
+            laser_power -= laser_power_change / 2
+        else:
+            laser_power -= laser_power_change
+    elif average_temperature < ReferenceTemperature - 5:
+        if temperature_history[-1] >= ReferenceTemperature and temperature_history[-2] < ReferenceTemperature:
+            laser_power += laser_power_change / 2
+        else:
+            laser_power += laser_power_change
+    post_log('Computed Laser Power : ' + str(laser_power))
+    return laser_power
 if __name__ == '__main__':
     start_ymdhms = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     with open('temp/log.log', 'a') as f:
@@ -447,11 +464,7 @@ if __name__ == '__main__':
                 r2 = R2.get_value()
                 laser_power = r2
                 # 平均温度を元に次の層のレーザ出力を算出
-                if average_temperature >= ReferenceTemperature:
-                    laser_power -= laser_power_change
-                else:
-                    laser_power += laser_power_change
-                post_log('Computed Laser Power : ' + str(laser_power))
+                laser_power = compute_laser_power(laser_power, average_temperature, temperature_history, ReferenceTemperature, laser_power_change)
                 # 算出したレーザ出力をCELOSのR2に書き込む
                 if laser_power > laser_power_max:
                     laser_power_history = np.append(laser_power_history, r2)
