@@ -1,0 +1,33 @@
+# file: mydata.py
+# 以下ユーザー情報を記述
+import numpy as np
+user_info = {
+    "name": "kujira",
+    "password": "hoge",
+    "email": "web@kujirahand.com",
+    "url": "https://kujirahand.com",
+}
+info = {
+    "number_of_images": 3,# 分析する画像枚数
+    "height": 300,# 画像高さ[px]
+    "width": 300,# 画像幅[px]
+    "threshold": 20,# 閾値
+    "resolution": 0.023, # TODO: 分解能[mm/pixel]
+    "frame_rate": 5, # TODO: フレームレート[fps]
+    "feed_rate": 1000, #  走査速度[mm/min]
+    "coefs": np.array([ 2.15489147e+00, -1.50682127e+00,  6.00025683e+00,  1.77044939e+03]),#f4g16
+    "sleep_time": 0.5,# 処理待ちの秒数[s]
+    "capture_button_x": 1044,# 撮影ボタンのx座標
+    "capture_button_y": 491,# 撮影ボタンのy座標
+    "temperature_max": 2310,# 溶融池の最大温度[℃]
+    "temperature_min": 1890,# 溶融池の最小温度[℃]
+    "sod_ref": 13,# SODの目標値[mm]
+    "sod_coef": 0,# 係数[px/mm]
+    "sod_intercept_px": 0,# 切片[px]
+    "z_pitch_max": 5,# celosに入力できるzピッチの上限値[mm]
+    "z_pitch_min": -5,# celosに入力できるzピッチの下限値[mm]
+    "z_pitch_fix": 0.4,# 上限値、下限値を超えた場合にcelosに入力する固定値[mm]（推奨値→薄壁：0.4、ブロック：0.7）
+    "laser_power_change": 100,# レーザ出力の増減値[W]
+    "laser_power_max": 2000,# レーザ出力の上限値[W]
+    "video_capture": True,# 動画撮影による測定
+}
